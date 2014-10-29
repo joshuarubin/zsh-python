@@ -1,2 +1,2 @@
-zsh-virtualenvwrapper
-=====================
+zsh-python
+==========
