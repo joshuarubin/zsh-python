@@ -9,7 +9,7 @@
 if (( $+commands[pyenv] )); then
   #eval "$(pyenv init -)"
   export PYENV_SHELL=zsh
-  source '/usr/local/Cellar/pyenv/20141012/completions/pyenv.zsh'
+  source '/usr/local/Cellar/pyenv/20141211/completions/pyenv.zsh'
   #pyenv rehash 2>/dev/null
   pyenv() {
     local command
