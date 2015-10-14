@@ -6,25 +6,31 @@
 #   Sebastian Wiesner <lunaryorn@googlemail.com>
 #
 
-if (( $+commands[pyenv] )); then
-  #eval "$(pyenv init -)"
-  export PYENV_SHELL=zsh
-  source '/usr/local/Cellar/pyenv/20150226/completions/pyenv.zsh'
-  #pyenv rehash 2>/dev/null
-  pyenv() {
-    local command
-    command="$1"
-    if [ "$#" -gt 0 ]; then
-      shift
-    fi
+local fdir=$0:A:h/functions
+fpath+=$fdir
+autoload -Uz $fdir/*(:t)
 
-    case "$command" in
-    rehash|shell)
-      eval "`pyenv "sh-$command" "$@"`";;
-    *)
-      command pyenv "$command" "$@";;
-    esac
-  }
+# Load manually installed pyenv into the shell session.
+if [[ -s "$HOME/.pyenv/bin/pyenv" ]]; then
+  path=("$HOME/.pyenv/bin" $path)
+  eval "$(pyenv init -)"
+
+# Load package manager installed pyenv into the shell session.
+elif (( $+commands[pyenv] )); then
+  eval "$(pyenv init -)"
+
+# Prepend PEP 370 per user site packages directory, which defaults to
+# ~/Library/Python on Mac OS X and ~/.local elsewhere, to PATH. The
+# path can be overridden using PYTHONUSERBASE.
+else
+  if [[ -n "$PYTHONUSERBASE" ]]; then
+    path=($PYTHONUSERBASE/bin $path)
+  elif [[ "$OSTYPE" == darwin* ]]; then
+    path=($HOME/Library/Python/*/bin(N) $path)
+  else
+    # This is subject to change.
+    path=($HOME/.local/bin $path)
+  fi
 fi
 
 # Return if requirements are not found.
@@ -32,12 +38,15 @@ if (( ! $+commands[python] && ! $+commands[pyenv] )); then
   return 1
 fi
 
-if (( $+commands[virtualenvwrapper_lazy.sh] )); then
-  export WORKON_HOME=$HOME/.virtualenvs
-  export PROJECT_HOME=$HOME/working
-  export VIRTUALENVWRAPPER_SCRIPT=$(which virtualenvwrapper.sh)
+# Load virtualenvwrapper into the shell session.
+if (( $+commands[virtualenvwrapper.sh] )); then
+  # Set the directory where virtual environments are stored.
+  export WORKON_HOME="$HOME/.virtualenvs"
+
+  # Disable the virtualenv prompt.
   VIRTUAL_ENV_DISABLE_PROMPT=1
-  source $(which virtualenvwrapper_lazy.sh)
+
+  source "$commands[virtualenvwrapper.sh]"
 fi
 
 #
